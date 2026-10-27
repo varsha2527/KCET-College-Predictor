@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KCET College Predictor</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #172033;
+}
+
+header {
+    background: #142d5c;
+    color: white;
+    padding: 28px 20px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0 0 10px;
+}
+
+header p {
+    margin: 0;
+    color: #dbe7ff;
+}
+
+.container {
+    max-width: 1050px;
+    margin: 30px auto;
+    padding: 0 18px;
+}
+
+.panel {
+    background: white;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 5px 20px #142d5c12;
+    margin-bottom: 24px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 15px;
+    background: white;
+}
+
+button {
+    margin-top: 22px;
+    background: #2458c6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 13px 22px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #193f94;
+}
+
+#status {
+    margin-top: 16px;
+    color: #475569;
+}
+
+.results {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+    min-width: 600px;
+}
+
+th, td {
+    text-align: left;
+    padding: 13px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+    background: #edf3ff;
+}
+
+.notice {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+footer {
+    text-align: center;
+    color: #64748b;
+    padding: 20px;
+}
+</style>
+</head>
+
+<body>
+<header>
+    <h1>KCET College Predictor</h1>
+    <p>Explore engineering colleges using historical KCET cutoff ranks</p>
+</header>
+
+<main class="container">
+    <section class="panel">
+        <h2>Find Your College Options</h2>
+
+        <div class="form-grid">
+            <div>
+                <label for="rank">Your KCET rank</label>
+                <input id="rank" type="number" min="1" placeholder="e.g. 5000">
+            </div>
+
+            <div>
+                <label for="category">Reservation category</label>
+                <select id="category">
+                    <option>GM</option>
+                    <option>GMK</option>
+                    <option>GMR</option>
+                    <option>1G</option>
+                    <option>1K</option>
+                    <option>1R</option>
+                    <option>2AG</option>
+                    <option>2AK</option>
+                    <option>2AR</option>
+                    <option>2BG</option>
+                    <option>2BK</option>
+                    <option>2BR</option>
+                    <option>3AG</option>
+                    <option>3AK</option>
+                    <option>3AR</option>
+                    <option>3BG</option>
+                    <option>3BK</option>
+                    <option>3BR</option>
+                    <option>SCG</option>
+                    <option>SCK</option>
+                    <option>SCR</option>
+                    <option>STG</option>
+                    <option>STK</option>
+                    <option>STR</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="branch">Preferred branch</label>
+                <select id="branch">
+                    <option value="">All branches</option>
+                    <option value="COMPUTER SCIENCE">Computer Science</option>
+                    <option value="ARTIFICIAL INTELLIGENCE">Artificial Intelligence</option>
+                    <option value="INFORMATION SCIENCE">Information Science</option>
+                    <option value="ELECTRONICS">Electronics</option>
+                    <option value="MECHANICAL">Mechanical</option>
+                    <option value="CIVIL">Civil</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="college">College name (optional)</label>
+                <input id="college" type="text" placeholder="Search a college">
+            </div>
+        </div>
+
+        <button id="predictBtn" onclick="predict()">Predict Colleges</button>
+        <p id="status" role="status"></p>
+        <p class="notice">
+            Predictions use historical cutoff data and are not admission guarantees.
+        </p>
+    </section>
+
+    <section class="panel">
+        <h2>Results</h2>
+        <p id="count">Enter your details to see matching options.</p>
+        <div class="results">
+            <table>
+                <thead>
+                    <tr>
+                        <th>College</th>
+                        <th>Branch</th>
+                        <th>Historical closing rank</th>
+                    </tr>
+                </thead>
+                <tbody id="results"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<footer>KCET College Predictor · Prototype</footer>
+
+<script>
+async function predict() {
+    const rank = Number(document.getElementById("rank").value);
+    const category = document.getElementById("category").value;
+    const branch = document.getElementById("branch").value;
+    const college = document.getElementById("college").value.trim();
+
+    const status = document.getElementById("status");
+    const count = document.getElementById("count");
+    const resultsBody = document.getElementById("results");
+    const button = document.getElementById("predictBtn");
+
+    resultsBody.replaceChildren();
+
+    if (!Number.isInteger(rank) || rank < 1) {
+        status.textContent = "Please enter a valid positive integer rank.";
+        return;
+    }
+
+    button.disabled = true;
+    status.textContent = "Finding matching colleges...";
+    count.textContent = "";
+
+    try {
+        const response = await fetch(
+            "https://yeah-share-bok.ngrok-free.dev/predict",
+            {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({rank, category, branch, college})
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || "Prediction request failed.");
+        }
+
+        count.textContent = `${data.count} matching options`;
+
+        for (const item of data.results.slice(0, 100)) {
+            const row = document.createElement("tr");
+
+            for (const value of [
+                item.college,
+                item.course,
+                Number(item.closing_rank).toLocaleString("en-IN")
+            ]) {
+                const cell = document.createElement("td");
+                cell.textContent = value;
+                row.appendChild(cell);
+            }
+
+            resultsBody.appendChild(row);
+        }
+
+        status.textContent = data.count > 100
+            ? "Showing the first 100 options. Refine your filters to narrow the results."
+            : "Prediction completed.";
+    } catch (error) {
+        status.textContent =
+            "Could not connect to the backend. The website and API must be served from a compatible address. Details: "
+            + error.message;
+    } finally {
+        button.disabled = false;
+    }
+}
+</script>
+</body>
+</html>
