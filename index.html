@@ -239,15 +239,17 @@ async function predict() {
     status.textContent = "Finding matching colleges...";
     count.textContent = "";
 
+   
     try {
         const response = await fetch(
-            "https://yeah-share-bok.ngrok-free.dev/predict",
+            "https://kcet-predictor-backend.onrender.com/predict",
             {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({rank, category, branch, college})
             }
         );
+
 
         const data = await response.json();
 
